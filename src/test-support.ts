@@ -4,7 +4,10 @@ import type { ExtensionAPI, SessionEntry } from "@earendil-works/pi-coding-agent
 
 type Handler = (event: unknown, ctx: unknown) => unknown;
 
-/** A fake pi: records `pi.on` registrations and dispatches events the way pi does, last result wins. */
+/**
+ * A fake pi: records `pi.on` registrations and dispatches before_agent_start the way pi does: every handler in
+ * registration order, each seeing earlier handlers' changes to the event, and every returned `message` collected.
+ */
 export function fakePi() {
   const handlers = new Map<string, Handler[]>();
   const api = {
@@ -13,12 +16,15 @@ export function fakePi() {
       return () => {};
     },
   };
-  /** Dispatches `event` with a context whose session branch is `getBranch()`; resolves the last handler result. */
-  async function emit(event: string, payload: unknown, getBranch: () => SessionEntry[] = () => []): Promise<unknown> {
+  /** Dispatches `event` with a context whose session branch is `getBranch()`; resolves the messages handlers returned. */
+  async function emit(event: string, payload: unknown, getBranch: () => SessionEntry[] = () => []): Promise<unknown[]> {
     const ctx = { sessionManager: { getBranch } };
-    let result: unknown;
-    for (const handler of handlers.get(event) ?? []) result = (await handler(payload, ctx)) ?? result;
-    return result;
+    const messages: unknown[] = [];
+    for (const handler of handlers.get(event) ?? []) {
+      const result = (await handler(payload, ctx)) as { message?: unknown } | undefined;
+      if (result?.message) messages.push(result.message);
+    }
+    return messages;
   }
   return { pi: api as unknown as ExtensionAPI, emit, events: () => [...handlers.keys()] };
 }

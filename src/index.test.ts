@@ -10,16 +10,17 @@ import { agentStart, fakePi } from "./test-support.ts";
 const LATE_EVENING_IN_LOS_ANGELES = new Date("2026-09-22T05:30:00Z");
 const LOS_ANGELES = { env: { [DATE_TAIL_TZ_ENV]: "America/Los_Angeles" }, processZone: "Asia/Tokyo", clock: () => LATE_EVENING_IN_LOS_ANGELES };
 
-const contentOf = (result: unknown): unknown => (result as { message?: { content?: unknown } } | undefined)?.message?.content;
+/** The content of the one message date-tail returned, or undefined when it returned none. */
+const contentOf = (messages: unknown[]): unknown => (messages[0] as { content?: unknown } | undefined)?.content;
 
 test("a prompt gets the day as a hidden date-tail message, and the system prompt is left alone", async () => {
   const { pi, emit } = fakePi();
   registerDateTail(pi, LOS_ANGELES);
   const event = agentStart();
   const result = await emit("before_agent_start", event);
-  assert.deepEqual(result, {
-    message: { customType: DATE_MESSAGE_TYPE, content: renderDateMessage(LATE_EVENING_IN_LOS_ANGELES, "America/Los_Angeles"), display: false },
-  });
+  assert.deepEqual(result, [
+    { customType: DATE_MESSAGE_TYPE, content: renderDateMessage(LATE_EVENING_IN_LOS_ANGELES, "America/Los_Angeles"), display: false },
+  ]);
   assert.deepEqual(event.systemPromptOptions.sections, {});
 });
 
@@ -59,21 +60,48 @@ test("a prompt whose branch already carries today's message adds nothing", async
   const branch = [{ type: "custom_message", id: "d1", parentId: null, timestamp: "t", customType: DATE_MESSAGE_TYPE, content: today, display: false }] as SessionEntry[];
   const { pi, emit } = fakePi();
   registerDateTail(pi, LOS_ANGELES);
-  assert.equal(await emit("before_agent_start", agentStart(), () => branch), undefined);
+  assert.deepEqual(await emit("before_agent_start", agentStart(), () => branch), []);
 });
 
 test("a date section already in the system prompt wins: no message, and the section is untouched", async () => {
   const { pi, emit } = fakePi();
   registerDateTail(pi, LOS_ANGELES);
   const event = agentStart({ [DATE_SECTION]: "Current date: set elsewhere" });
-  assert.equal(await emit("before_agent_start", event), undefined);
+  assert.deepEqual(await emit("before_agent_start", event), []);
   assert.deepEqual(event.systemPromptOptions.sections, { [DATE_SECTION]: "Current date: set elsewhere" });
+});
+
+test("a date section counts only when its extension's handler ran first, as pi runs them in load order (table)", async () => {
+  const setDateSection = (event: unknown) => {
+    (event as ReturnType<typeof agentStart>).systemPromptOptions.sections[DATE_SECTION] = "Current date: set elsewhere";
+    return undefined;
+  };
+  const cases: Array<{ name: string; otherFirst: boolean; messages: number }> = [
+    { name: "the other extension loads first: date-tail sees its section and adds nothing", otherFirst: true, messages: 0 },
+    { name: "the other extension loads later: date-tail cannot see it, and the model gets both", otherFirst: false, messages: 1 },
+  ];
+  for (const testCase of cases) {
+    const { pi, emit } = fakePi();
+    if (testCase.otherFirst) pi.on("before_agent_start", setDateSection);
+    registerDateTail(pi, LOS_ANGELES);
+    if (!testCase.otherFirst) pi.on("before_agent_start", setDateSection);
+    const event = agentStart();
+    assert.equal((await emit("before_agent_start", event)).length, testCase.messages, testCase.name);
+    assert.equal(event.systemPromptOptions.sections[DATE_SECTION], "Current date: set elsewhere", testCase.name);
+  }
 });
 
 test("an options object without a sections map still gets the date", async () => {
   const { pi, emit } = fakePi();
   registerDateTail(pi, LOS_ANGELES);
   const event = { ...agentStart(), systemPromptOptions: {} };
+  assert.match(String(contentOf(await emit("before_agent_start", event))), /^Current date: 2026-09-21/);
+});
+
+test("an event without systemPromptOptions still gets the date, and never throws", async () => {
+  const { pi, emit } = fakePi();
+  registerDateTail(pi, LOS_ANGELES);
+  const event = { ...agentStart(), systemPromptOptions: undefined };
   assert.match(String(contentOf(await emit("before_agent_start", event))), /^Current date: 2026-09-21/);
 });
 
@@ -85,7 +113,7 @@ test("a clock that throws or answers an invalid Date never fails the prompt: no 
   for (const testCase of clocks) {
     const { pi, emit } = fakePi();
     registerDateTail(pi, { ...LOS_ANGELES, clock: testCase.clock });
-    assert.equal(await emit("before_agent_start", agentStart()), undefined, testCase.name);
+    assert.deepEqual(await emit("before_agent_start", agentStart()), [], testCase.name);
   }
 });
 

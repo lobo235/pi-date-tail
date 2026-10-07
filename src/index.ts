@@ -47,7 +47,7 @@ function dateMessageFor(zone: ZoneName, clock: () => Date, ctx: ExtensionContext
 export function registerDateTail(pi: ExtensionAPI, options: DateTailOptions): void {
   const zone = resolveTimeZone(options.env[DATE_TAIL_TZ_ENV], options.processZone);
   pi.on("before_agent_start", (event, ctx) => {
-    const sections = (event.systemPromptOptions as { sections?: Record<string, string> }).sections;
+    const sections = (event.systemPromptOptions as { sections?: Record<string, string> } | undefined)?.sections;
     if (sections?.[DATE_SECTION] !== undefined) return undefined;
     return dateMessageFor(zone, options.clock, ctx);
   });
