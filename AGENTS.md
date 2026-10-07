@@ -1,7 +1,7 @@
 # Working on pi-date-tail (for coding agents)
 
 pi-date-tail is a pi extension that gives the model the calendar day as a hidden custom message appended to the
-conversation, once per day and after each compaction, and never in the system prompt. Human contributors:
+conversation, once per day and again after a compaction that summarized it away, and never in the system prompt. Human contributors:
 [CONTRIBUTING.md](CONTRIBUTING.md) says the same with more context.
 
 ## Commands
@@ -12,7 +12,8 @@ npm test               # typecheck + src/**/*.test.ts + load smoke + pi smoke; m
 npm run typecheck      # tsc only
 node --test src/date-message.test.ts   # one file
 npm run load-smoke     # the entry through the vendored pi's own loader (jiti)
-npm run smoke          # the vendored pi, fresh HOME and agent dir, a fake model on loopback; --keep to inspect
+npm run smoke          # the vendored pi (packed + installed copy, and src), fresh HOME and agent dir, fake model
+npm run smoke -- --keep   # the same, leaving the temporary directory for inspection
 npm run check-pack     # what npm would publish: the allowlist, nothing test-only
 ```
 
@@ -21,7 +22,7 @@ npm run check-pack     # what npm would publish: the allowlist, nothing test-onl
 - `src/index.ts`: the extension entry: the factory pi calls, and `registerDateTail` with injectable env and clock.
 - `src/date-message.ts`: the message text and the once-per-day check. `src/time-zone.ts`: `PI_DATE_TAIL_TZ`.
 - `src/test-support.ts`: a fake pi and a helper that runs code under a given `TZ`. Never shipped.
-- `load-smoke.mjs`, `scripts/pi-smoke.ts` (with `scripts/rpc-pi.ts` and `scripts/fake-model.ts`),
+- `load-smoke.mjs`, `scripts/pi-smoke.ts` (with `scripts/rpc-pi.ts`, `scripts/packed.ts` and `scripts/fake-model.ts`),
   `scripts/check-pack.ts`: the smokes and the package check.
 
 ## Invariants (do not break these)

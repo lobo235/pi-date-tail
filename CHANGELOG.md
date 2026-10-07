@@ -15,11 +15,10 @@ once-per-day behaviour. The message's exact wording is not part of it.
 - `PI_DATE_TAIL_TZ`: the IANA zone whose day is given. Unset means the zone pi runs in (`TZ`, then the
   system's); a value that is not a zone name stops pi at launch, naming the variable and the value.
 - The message names the zone and gives the command for the current time (`TZ=<zone> date`).
-- A `date` section another extension put in the system prompt wins: no message is added.
-- CI: tests, pi's own extension loader and a real pi with a fake model on Linux and macOS, a secret scan
-  and a package-contents check; a nightly run against the newest pi; npm publishing by trusted publishing.
-
-### Changed
-
+- A `date` section that an extension running earlier put in the system prompt wins: no message is added.
 - A date message that the latest compaction kept (at or after its first kept entry) counts as present, so
-  the next prompt no longer adds a second copy. A kept message from an earlier day still gets today's added.
+  the next prompt adds no second copy. A kept message from an earlier day still gets today's added.
+- CI on Linux and macOS: the tests; the entry loaded through pi's own extension loader (jiti); a real pi with
+  a fake model, run both on the package as `npm pack` builds it, installed with `pi install` so pi finds it
+  through the `pi.extensions` manifest and the `files` allowlist, and on the source; a secret scan and a
+  package-contents check. A nightly run against the newest pi; npm publishing by trusted publishing.

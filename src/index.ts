@@ -4,7 +4,8 @@
  * pi left the date out of its system prompt so the prompt would not change every day and invalidate a
  * provider's prompt cache. This gives the model the day back as a hidden custom message that
  * `before_agent_start` returns: pi appends it after the user's prompt and keeps it on the transcript, so
- * nothing ahead of it ever changes. It is added once per calendar day, and again after a compaction.
+ * nothing ahead of it ever changes. It is added once per calendar day, and again after a compaction that
+ * summarized it away.
  *
  * Considered and rejected: a `date` system-prompt section (pi renders the base sections on runs that a
  * custom message starts, so the section would come and go, and each flip re-reads the whole conversation
@@ -14,7 +15,7 @@ import type { BeforeAgentStartEventResult, ExtensionAPI, ExtensionContext } from
 import { DATE_MESSAGE_TYPE, alreadyDated, renderDateMessage } from "./date-message.ts";
 import { DATE_TAIL_TZ_ENV, processTimeZone, resolveTimeZone, type ZoneName } from "./time-zone.ts";
 
-/** A `date` section another extension or the user's own setup put in the system prompt; it wins. */
+/** A `date` section an extension that ran earlier put in the system prompt; when present, it wins. */
 export const DATE_SECTION = "date";
 
 /** What date-tail reads from its surroundings, injectable so tests need no real clock or environment. */

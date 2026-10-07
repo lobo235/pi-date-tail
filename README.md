@@ -15,8 +15,9 @@ the conversation, once a day, so nothing a cache already holds ever changes.
 Current date: 2026-09-21 (Monday), your calendar day in Europe/Berlin. No time is given here: run `TZ=Europe/Berlin date` when a time matters.
 ```
 
-One line, about 40 tokens, after your prompt. It is hidden in pi's interface; the model receives it like any
-other message.
+One line, about 40 to 50 input tokens depending on the tokenizer and the zone name, after your prompt, once per
+calendar day and again after a compaction that summarized it. No extra model requests and no network calls.
+Hidden in pi's interface; the model receives it like any other message.
 
 ## Install
 
@@ -26,7 +27,7 @@ pi install npm:pi-date-tail
 
 To try it for one session without installing: `pi -e npm:pi-date-tail`.
 
-Requirements: Node.js 22.19 or newer (pi's own requirement) and pi (see *Compatibility*). No configuration is
+Requirements: Node.js 22.19 or newer (pi's own requirement) and pi (see *pi versions*). No configuration is
 needed: the day is your machine's.
 
 ## How it works
@@ -44,8 +45,10 @@ on the session transcript, so it stays in every later request of the session lik
   gets the new day with your next prompt.
 - **A day, never a time.** A time would change on every prompt. The message says so and gives the model the
   command for the current time, with the zone in it.
-- **It steps aside for a `date` section.** If another extension already puts a `date` section in pi's system
-  prompt, pi-date-tail adds nothing and leaves that section as it is.
+- **It steps aside for a `date` section, if that extension runs first.** pi runs extensions' `before_agent_start`
+  handlers in load order, and each sees only what earlier ones changed. If an extension that runs before
+  pi-date-tail has put a `date` section in pi's system prompt, pi-date-tail adds nothing and leaves that section
+  as it is. A section added by an extension that runs later is not seen, and the model gets both.
 - **It never fails a prompt.** If the clock cannot be read, no message is added. If the session branch cannot
   be read, the message is added anyway (a repeat is appended, so it costs no cache).
 
@@ -90,14 +93,21 @@ If `PI_DATE_TAIL_TZ` is unset and the process has no named zone (`TZ` set to som
 example), the day is the one the process itself uses, and the message says "this machine's local time zone" and
 suggests plain `date`.
 
-## Compatibility
+## Turning it off
+
+- Remove it: `pi remove npm:pi-date-tail`.
+- For one session: `pi -ne` starts pi without extensions (all of them, not only this one).
+- There is no switch that turns it off while it stays installed.
+
+## pi versions
 
 pi-date-tail uses one public extension event (`before_agent_start` returning a custom message) and reads the
 session branch. It does not check pi's version at runtime.
 
 - Tested on pi 1.0.4, the version this repository vendors for its tests.
-- CI runs the tests, pi's own extension loader and a real pi (with a fake model) on every push, on Linux and
-  macOS. Windows runs too, but is not yet required to pass.
+- CI runs, on every push on Linux and macOS: the tests, pi's own extension loader on the entry, and a real pi
+  with a fake model, both on the package as `npm pack` builds it (installed with `pi install`) and on the
+  source. On Windows, CI runs it but it is not required to pass.
 - A nightly job runs the same against the newest pi on npm and opens an issue when it fails. A pi version known
   to break pi-date-tail is listed under *Known issues* until it is fixed.
 
@@ -114,7 +124,7 @@ session branch. It does not check pi's version at runtime.
 ```sh
 dir=$(mktemp -d)
 pi -p --session-dir "$dir" --model example-provider/example-model "What is today's date? Reply with only YYYY-MM-DD." </dev/null
-date +%F                                                    # the two should agree
+env ${PI_DATE_TAIL_TZ:+TZ="$PI_DATE_TAIL_TZ"} date +%F     # the two should agree
 jq -c 'select(.type == "custom_message")' "$dir"/*.jsonl    # one entry, customType "date-tail"
 ```
 

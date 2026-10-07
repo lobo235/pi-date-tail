@@ -18,8 +18,8 @@ The latest release.
 
 ## Scope
 
-pi-date-tail makes no network calls, writes no files of its own, and reads one environment variable
-(`PI_DATE_TAIL_TZ`) and the current session branch. In scope: anything where it turns untrusted input into
+pi-date-tail makes no network calls, writes no files of its own, and reads one environment variable of its own
+(`PI_DATE_TAIL_TZ`), the process time zone (`TZ`), and the current session branch. In scope: anything where it turns untrusted input into
 harm. For example:
 
 - session entries (a transcript you resume may have been written elsewhere) that make the handler throw, hang

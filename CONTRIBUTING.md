@@ -43,6 +43,30 @@ The nightly workflow installs the newest pi and runs `npm test` against it; a fa
 one by hand, set the exact version of `@earendil-works/pi-coding-agent` in `devDependencies`, run
 `npm install`, then `npm test`.
 
+## Releasing (maintainers)
+
+1. Bump `version` in `package.json` (it starts at `0.0.0`), and rename `## [Unreleased]` in `CHANGELOG.md` to
+   `## [vX.Y.Z] - YYYY-MM-DD`, with the `v` (`release.yml` looks for exactly that heading). Add a fresh empty
+   `## [Unreleased]` above it.
+2. **The first publish of the package is manual.** npm cannot configure a trusted publisher for a package that
+   does not exist yet, so the first version is published by hand: `npm publish --access public`, with 2FA. Right
+   after it, on npmjs.com: configure the trusted publisher (this repository, workflow `release.yml`, environment
+   `npm`), set publishing access to "require two-factor authentication and disallow tokens", and delete any token
+   used for the first publish.
+3. **Every later release:** tag `vX.Y.Z` on `main` and push the tag. `release.yml` checks the tag against
+   `package.json` and the changelog, runs the tests, and publishes with provenance from the `npm` environment.
+4. A trusted-publisher configuration must complete its first publish within 2 days, or it expires and has to be
+   set up again.
+
+### Repository settings the docs and workflows depend on
+
+- **Environment `npm`** with required reviewers (otherwise a tag publishes without a maintainer's approval) and a
+  deployment tag rule for `v*`.
+- **Discussions** enabled: the issue template's "Questions and setup help" link points there.
+- **Private vulnerability reporting** enabled: SECURITY.md sends reports to the Security tab.
+- The nightly workflow opens issues, never pull requests, so "Allow GitHub Actions to create and approve pull
+  requests" is not needed.
+
 ## Licence
 
 pi-date-tail is MIT licensed. By opening a pull request you agree your contribution is licensed under the same

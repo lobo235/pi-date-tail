@@ -1,7 +1,7 @@
 {
   "name": "pi-date-tail",
   "version": "0.0.0",
-  "description": "Your calendar day for pi, without touching the system prompt: a short hidden message appended to the conversation, once per day and after each compaction.",
+  "description": "Your calendar day for pi, without touching the system prompt: a short hidden message appended to the conversation, once per day and again after a compaction that summarized it away.",
   "type": "module",
   "license": "MIT",
   "author": "Justin Barlow",
