@@ -39,13 +39,15 @@ test("an invalid Date throws, so the caller decides what a broken clock costs", 
   assert.throws(() => renderDateMessage(new Date(Number.NaN), "UTC"), RangeError);
 });
 
-const dateEntry = (content: string, customType = DATE_MESSAGE_TYPE) =>
-  ({ type: "custom_message", id: "d1", parentId: null, timestamp: "t", customType, content, display: false }) as SessionEntry;
+const dateEntry = (content: string, customType = DATE_MESSAGE_TYPE, id = "d1") =>
+  ({ type: "custom_message", id, parentId: null, timestamp: "t", customType, content, display: false }) as SessionEntry;
 const userEntry = (id: string) =>
   ({ type: "message", id, parentId: null, timestamp: "t", message: { role: "user", content: "hi", timestamp: 0 } }) as SessionEntry;
-const compactionEntry = { type: "compaction", id: "c1", parentId: null, timestamp: "t", summary: "s", firstKeptEntryId: "u2", tokensBefore: 1 } as SessionEntry;
+/** A compaction that summarized everything before `firstKeptEntryId` and kept the rest. */
+const compaction = (firstKeptEntryId: string, id = "c1") =>
+  ({ type: "compaction", id, parentId: null, timestamp: "t", summary: "s", firstKeptEntryId, tokensBefore: 1 }) as SessionEntry;
 
-test("today's message counts only when it is on the branch after the latest compaction (table)", () => {
+test("today's message counts only when the model still sees it: after the latest compaction, or kept by it (table)", () => {
   const today = renderDateMessage(LATE_EVENING_IN_LOS_ANGELES, "America/Los_Angeles");
   const yesterday = renderDateMessage(new Date("2026-09-21T05:30:00Z"), "America/Los_Angeles");
   const todayInTokyo = renderDateMessage(LATE_EVENING_IN_LOS_ANGELES, "Asia/Tokyo");
@@ -54,9 +56,17 @@ test("today's message counts only when it is on the branch after the latest comp
     { name: "today's message on the branch", branch: [userEntry("u1"), dateEntry(today), userEntry("u2")], dated: true },
     { name: "only yesterday's message", branch: [dateEntry(yesterday), userEntry("u1")], dated: false },
     { name: "today's message for another zone", branch: [dateEntry(todayInTokyo), userEntry("u1")], dated: false },
-    { name: "today's message, then a compaction that may have summarized it away", branch: [dateEntry(today), userEntry("u1"), compactionEntry, userEntry("u2")], dated: false },
-    { name: "a compaction, then today's message", branch: [compactionEntry, dateEntry(today), userEntry("u2")], dated: true },
+    { name: "today's message, then a compaction that may have summarized it away", branch: [dateEntry(today), userEntry("u1"), compaction("u1"), userEntry("u2")], dated: false },
+    { name: "a compaction, then today's message", branch: [userEntry("u1"), compaction("u1"), dateEntry(today), userEntry("u2")], dated: true },
     { name: "another extension's message with the same text", branch: [dateEntry(today, "someone-else")], dated: false },
+    // pi builds the context from the summary plus the entries from firstKeptEntryId on, so a kept message is still seen.
+    { name: "today's message kept by the compaction", branch: [userEntry("u1"), userEntry("u2"), dateEntry(today), userEntry("u3"), compaction("u2"), userEntry("u4")], dated: true },
+    { name: "today's message is the first kept entry", branch: [userEntry("u1"), dateEntry(today), userEntry("u2"), compaction("d1")], dated: true },
+    { name: "yesterday's message kept by the compaction", branch: [userEntry("u1"), userEntry("u2"), dateEntry(yesterday), userEntry("u3"), compaction("u2"), userEntry("u4")], dated: false },
+    { name: "today's message before the first kept entry", branch: [userEntry("u1"), dateEntry(today), userEntry("u2"), compaction("u2"), userEntry("u3")], dated: false },
+    { name: "a compaction whose first kept entry is not on the branch", branch: [dateEntry(today), userEntry("u1"), compaction("gone")], dated: false },
+    { name: "a first kept entry after the compaction (malformed): only what follows the compaction counts", branch: [dateEntry(today), userEntry("u1"), compaction("u2"), userEntry("u2")], dated: false },
+    { name: "today's message kept by an earlier compaction, not by the latest", branch: [userEntry("u1"), dateEntry(today), compaction("d1", "c1"), userEntry("u2"), compaction("u2", "c2")], dated: false },
   ];
   for (const testCase of cases) {
     assert.equal(alreadyDated(testCase.branch, today), testCase.dated, testCase.name);

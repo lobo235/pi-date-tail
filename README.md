@@ -35,10 +35,11 @@ On every prompt you send, pi runs its extensions' `before_agent_start` handlers.
 a custom message of type `date-tail` with `display: false`. pi appends it right after your prompt and records it
 on the session transcript, so it stays in every later request of the session like any other message.
 
-- **Once per calendar day.** If the current branch already carries today's message (the same text, after the
-  latest compaction), nothing is added. A session that runs for a week gets one message a day.
-- **Again after a compaction.** A compaction replaces older messages with a summary, which may have dropped the
-  date, so the first prompt after one adds it again.
+- **Once per calendar day.** If the model can still see today's message (the same text, on the current branch),
+  nothing is added. A session that runs for a week gets one message a day.
+- **Again after a compaction that summarized it.** A compaction replaces older messages with a summary and keeps
+  the newest ones. If today's message was among those kept, nothing changes; if it was summarized away, the
+  first prompt after the compaction adds it again. A kept message from an earlier day does not count.
 - **A new day without a restart.** The day is worked out on each prompt, so a session that crosses midnight
   gets the new day with your next prompt.
 - **A day, never a time.** A time would change on every prompt. The message says so and gives the model the
@@ -105,8 +106,6 @@ session branch. It does not check pi's version at runtime.
 - **A run that does not start from your prompt sees the last message.** A run started after midnight by
   another extension's message, before you send a prompt, still sees yesterday's date. That is the cost of never
   touching the system prompt; your next prompt brings the new day.
-- **After a compaction that kept the date message, there are two copies** until the next compaction. One short
-  line; the check does not try to tell a kept message from a summarized one.
 - **The suggested `TZ=<zone> date` command assumes a POSIX shell.**
 - No pi version is currently known to break it.
 
@@ -130,8 +129,8 @@ pi-date-tail follows [Semantic Versioning](https://semver.org). The contract is:
   an invalid value stops pi at launch;
 - the persisted custom message type `date-tail`, hidden (`display: false`), which tools that read transcripts
   can rely on to recognize it;
-- that the message gives a calendar day and its zone, never a time, at most once per day per branch and again
-  after a compaction.
+- that the message gives a calendar day and its zone, never a time, at most once per day per branch, and again
+  after a compaction that summarized it away.
 
 Removing or renaming any of these, or changing what it means, is a major version. The exact wording of the
 message is not part of the contract; a release that changes it makes a resumed session add the new wording

@@ -1,5 +1,5 @@
 /** The date message: its persisted type, its text, and whether the model already has today's. */
-import type { SessionEntry } from "@earendil-works/pi-coding-agent";
+import type { CompactionEntry, SessionEntry } from "@earendil-works/pi-coding-agent";
 import type { ZoneName } from "./time-zone.ts";
 
 /** `customType` of the date message on the transcript. Persisted, so part of the SemVer contract. */
@@ -23,15 +23,24 @@ export function renderDateMessage(now: Date, zone: ZoneName): string {
 }
 
 /**
- * Whether `rendered` is already in the model's context: a date message with exactly that text on the
- * branch after the latest compaction. A compaction may have summarized an earlier one away, and adding
- * one short message again costs less than a model that has lost the date.
+ * Whether `rendered` is already in the model's context. pi builds the context from the latest compaction's
+ * summary plus the entries from its `firstKeptEntryId` on, so a date message with exactly that text counts when
+ * it is after the latest compaction or in the range that compaction kept. One the summary replaced may be gone,
+ * and adding one short message again costs less than a model that has lost the date.
  */
 export function alreadyDated(branch: readonly SessionEntry[], rendered: string): boolean {
-  for (let i = branch.length - 1; i >= 0; i--) {
-    const entry = branch[i];
-    if (entry.type === "compaction") return false;
-    if (entry.type === "custom_message" && entry.customType === DATE_MESSAGE_TYPE && entry.content === rendered) return true;
-  }
-  return false;
+  return branch.slice(firstEntryInContext(branch)).some((entry) =>
+    entry.type === "custom_message" && entry.customType === DATE_MESSAGE_TYPE && entry.content === rendered);
+}
+
+/**
+ * The index of the oldest branch entry the model still sees: the latest compaction's first kept entry, or the
+ * entry after that compaction when its first kept entry is not on the branch (nothing is assumed kept then).
+ */
+function firstEntryInContext(branch: readonly SessionEntry[]): number {
+  const compactionIndex = branch.findLastIndex((entry) => entry.type === "compaction");
+  if (compactionIndex < 0) return 0;
+  const { firstKeptEntryId } = branch[compactionIndex] as CompactionEntry;
+  const keptIndex = branch.findIndex((entry) => entry.id === firstKeptEntryId);
+  return keptIndex >= 0 && keptIndex < compactionIndex ? keptIndex : compactionIndex + 1;
 }
