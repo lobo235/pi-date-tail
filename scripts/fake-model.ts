@@ -1,8 +1,14 @@
-/** A fake OpenAI-compatible chat model on loopback: answers every request "ok" and keeps each request body. */
+/**
+ * A fake OpenAI-compatible chat model on loopback: answers each completion request "ok" and keeps its body.
+ * Anything else (a port scanner probing loopback, say) gets a 404 and is not recorded, so it can neither count as
+ * a model request nor be inspected as one.
+ */
 import * as http from "node:http";
 
 export const PROVIDER = "example-provider";
 export const MODEL = "example-model";
+/** The one route the fake answers: the base URL's `/v1` plus the chat completions path. */
+export const COMPLETIONS_PATH = "/v1/chat/completions";
 
 export interface FakeModel {
   server: http.Server;
@@ -22,6 +28,11 @@ function streamAnswer(res: http.ServerResponse, content: string): void {
 export function startFakeModel(): Promise<FakeModel> {
   const requests: FakeModel["requests"] = [];
   const server = http.createServer((req, res) => {
+    if (req.method !== "POST" || req.url !== COMPLETIONS_PATH) {
+      req.resume();
+      res.writeHead(404).end();
+      return;
+    }
     let body = "";
     req.setEncoding("utf8");
     req.on("data", (chunk: string) => { body += chunk; });

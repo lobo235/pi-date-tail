@@ -22,7 +22,8 @@ npm run check-pack     # what npm would publish: the allowlist, nothing test-onl
 - `src/index.ts`: the extension entry: the factory pi calls, and `registerDateTail` with injectable env and clock.
 - `src/date-message.ts`: the message text and the once-per-day check. `src/time-zone.ts`: `PI_DATE_TAIL_TZ`.
 - `src/test-support.ts`: a fake pi and a helper that runs code under a given `TZ`. Never shipped.
-- `load-smoke.mjs`, `scripts/pi-smoke.ts` (with `scripts/rpc-pi.ts`, `scripts/packed.ts` and `scripts/fake-model.ts`),
+- `load-smoke.mjs`, `scripts/pi-smoke.ts` (with `scripts/rpc-pi.ts`, `scripts/packed.ts`, `scripts/child-env.ts`
+  and `scripts/fake-model.ts`),
   `scripts/check-pack.ts`: the smokes and the package check.
 
 ## Invariants (do not break these)

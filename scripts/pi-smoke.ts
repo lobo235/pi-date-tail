@@ -12,7 +12,9 @@
  *  3. after a compaction that summarized it, the next prompt adds the message again;
  *  4. the transcript holds those messages as hidden `date-tail` custom messages;
  *  5. after a compaction that kept it, the next prompt adds nothing;
- *  6. an invalid PI_DATE_TAIL_TZ stops pi at launch with an error naming the variable.
+ *  6. an invalid PI_DATE_TAIL_TZ stops pi at launch with an error naming the variable;
+ *  7. pi gets an allowlisted environment: a sentinel secret set in this process does not reach pi's shell.
+ * Before them, a stray probe to the fake model must get a 404 and not count as a model request.
  * Exits 1 naming the first failed check. `--keep` leaves the temporary directory for inspection.
  */
 import * as fs from "node:fs";
@@ -21,6 +23,7 @@ import * as path from "node:path";
 import { DATE_MESSAGE_TYPE, renderDateMessage } from "../src/date-message.ts";
 import { DATE_TAIL_TZ_ENV } from "../src/time-zone.ts";
 import { PROVIDER, MODEL, startFakeModel, type FakeModel } from "./fake-model.ts";
+import { childEnv as allowlistedEnv } from "./child-env.ts";
 import { installPackedCopy } from "./packed.ts";
 import { startPi, vendoredPi } from "./rpc-pi.ts";
 
@@ -39,8 +42,18 @@ function writeAgentDir(root: string, port: number, keepRecentTokens: number): st
   return agentDir;
 }
 
+// Set in this process before any pi starts; check 7 fails if pi's shell can see it.
+const SENTINEL = { name: "FAKE_API_KEY", value: "date-tail-smoke-sentinel" };
+
 function childEnv(root: string, agentDir: string, zone: string): NodeJS.ProcessEnv {
-  return { ...process.env, HOME: root, USERPROFILE: root, PI_CODING_AGENT_DIR: agentDir, PI_OFFLINE: "1", [DATE_TAIL_TZ_ENV]: zone };
+  return allowlistedEnv(process.env, { HOME: root, USERPROFILE: root, PI_CODING_AGENT_DIR: agentDir, PI_OFFLINE: "1", [DATE_TAIL_TZ_ENV]: zone });
+}
+
+/** Check 7: pi's own shell sees the variables the smoke set, and not the sentinel this process holds. */
+async function checkEnvironment(pi: ReturnType<typeof startPi>): Promise<string | null> {
+  const output = await pi.bash("env", "env");
+  if (!output.includes(`${DATE_TAIL_TZ_ENV}=${ZONE}`)) return `environment: pi's shell did not show ${DATE_TAIL_TZ_ENV}; cannot tell what reached it`;
+  return output.includes(SENTINEL.name) || output.includes(SENTINEL.value) ? `environment: ${SENTINEL.name} from the parent reached pi` : null;
 }
 
 /** How many times `text` appears in the non-system messages of a request, and whether the system part has it. */
@@ -92,6 +105,8 @@ async function checkDating(root: string, fake: FakeModel): Promise<string | null
     await pi.compact("compact");
     await pi.prompt("third", "After the compaction?");
     const expected = datesSince(before);
+    const leaked = await checkEnvironment(pi);
+    if (leaked) return leaked;
     const failure = expectOnce(fake.requests[0], expected, "first prompt")
       ?? expectOnce(fake.requests[afterSecond - 1], expected, "second prompt")
       ?? (afterFirst === afterSecond ? "second prompt: no model request was made" : null);
@@ -147,12 +162,21 @@ async function checkInvalidZone(root: string): Promise<string | null> {
   return null;
 }
 
+/** Check 0: the fake model answers a stray probe (as a loopback port scanner sends) with 404 and does not record it. */
+async function checkProbeIgnored(fake: FakeModel): Promise<string | null> {
+  const response = await fetch(`http://127.0.0.1:${fake.port}/`, { method: "GET" });
+  if (response.status !== 404) return `fake model: a GET / probe answered ${response.status}, expected 404`;
+  return fake.requests.length === 0 ? null : "fake model: a GET / probe was recorded as a model request";
+}
+
 async function main(): Promise<number> {
   const keep = process.argv.includes("--keep");
+  process.env[SENTINEL.name] = SENTINEL.value;
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "date-tail-smoke-"));
   const fake = await startFakeModel();
   try {
-    const failure = (await checkDating(path.join(root, "summarized"), fake))
+    const failure = (await checkProbeIgnored(fake))
+      ?? (await checkDating(path.join(root, "summarized"), fake))
       ?? (await checkKeptDate(path.join(root, "kept"), fake))
       ?? (await checkInvalidZone(path.join(root, "invalid")));
     console.log(`pi smoke: pi ${vendoredPi().version}, ${fake.requests.length} model request(s): ${failure ?? "ok"}`);

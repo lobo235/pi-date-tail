@@ -8,7 +8,7 @@ import { MODEL, PROVIDER } from "./fake-model.ts";
 const repo = path.join(import.meta.dirname, "..");
 const TIMEOUT_MS = 120_000;
 
-type RpcMessage = { type?: string; id?: string; success?: boolean; error?: string };
+type RpcMessage = { type?: string; id?: string; success?: boolean; error?: string; data?: { output?: string } };
 
 /** The vendored pi: its version, and its CLI entry, run with this node so no shell shim is needed on any platform. */
 export function vendoredPi(): { version: string; cli: string } {
@@ -56,7 +56,7 @@ export function startPi(launch: PiLaunch) {
   const exited = new Promise<number | null>((resolve) => child.on("exit", (code) => resolve(code)));
 
   /** Sends `command` and resolves with the first message `done` accepts; rejects on a failed response or exit. */
-  function send(command: { id: string; type: string; message?: string }, done: (message: RpcMessage) => boolean): Promise<RpcMessage> {
+  function send(command: { id: string; type: string; message?: string; command?: string }, done: (message: RpcMessage) => boolean): Promise<RpcMessage> {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error(`no answer to ${command.id} within ${TIMEOUT_MS / 1000} s`)), TIMEOUT_MS);
       const finish = (error: Error | null, message?: RpcMessage) => {
@@ -76,6 +76,9 @@ export function startPi(launch: PiLaunch) {
   }
   const prompt = (id: string, message: string) => send({ id, type: "prompt", message }, (event) => event.type === "agent_settled");
   const compact = (id: string) => send({ id, type: "compact" }, (event) => event.type === "response" && event.id === id);
+  /** Runs `command` through pi's own bash (so in pi's environment) and resolves with its output. */
+  const bash = async (id: string, command: string) =>
+    (await send({ id, type: "bash", command }, (event) => event.type === "response" && event.id === id)).data?.output ?? "";
   const stop = async () => { child.stdin.end(); child.kill(); await exited; };
-  return { prompt, compact, stop, exited, stderr: () => stderr };
+  return { prompt, compact, bash, stop, exited, stderr: () => stderr };
 }
