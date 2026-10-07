@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "lib": [
+      "es2022"
+    ],
+    "types": [
+      "node"
+    ],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true
+  },
+  // Every .ts is type-checked (source, tests, scripts) so a new file cannot land outside the gate.
+  // load-smoke.mjs is a tool, not product code: deliberately .mjs, deliberately not type-checked here.
+  "include": [
+    "src/**/*.ts",
+    "scripts/**/*.ts"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "name": "pi-date-tail",
+  "version": "0.0.0",
+  "description": "Your calendar day for pi, without touching the system prompt: a short hidden message appended to the conversation, once per day and after each compaction.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Justin Barlow",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lobo235/pi-date-tail.git"
+  },
+  "homepage": "https://github.com/lobo235/pi-date-tail#readme",
+  "bugs": {
+    "url": "https://github.com/lobo235/pi-date-tail/issues"
+  },
+  "keywords": [
+    "pi-package",
+    "pi",
+    "date",
+    "prompt-cache",
+    "coding-agent"
+  ],
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "files": [
+    "src/**/*.ts",
+    "!src/**/*.test.ts",
+    "!src/test-support.ts",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "test": "npm run typecheck && node --test \"src/**/*.test.ts\" && npm run load-smoke && npm run smoke",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "load-smoke": "node load-smoke.mjs",
+    "smoke": "node scripts/pi-smoke.ts",
+    "check-pack": "node scripts/check-pack.ts"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "1.0.4",
+    "@types/node": "24.19.0",
+    "typescript": "5.9.3"
+  }
+}
