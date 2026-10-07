@@ -21,17 +21,22 @@ export interface PiLaunch {
   /** Holds `project/` (the working directory) and `sessions/` (the session dir). */
   root: string;
   env: NodeJS.ProcessEnv;
-  /** Load this repository's extension (and nothing else); false starts pi with no extensions at all. */
-  withExtension: boolean;
+  /**
+   * Which extensions pi loads. `source`: only this repository's `src/index.ts` (`-ne -e`). `installed`: whatever
+   * the agent dir's settings install (no flags; the package check installs the packed tarball there). `none`: no
+   * extensions at all (`-ne`).
+   */
+  extensions: "source" | "installed" | "none";
   /** Continue the newest session in `sessions/` instead of starting one. */
   continueSession?: boolean;
 }
 
 function piArgs(launch: PiLaunch): string[] {
   const args = [vendoredPi().cli, "--mode", "rpc", "--offline", "--session-dir", path.join(launch.root, "sessions"),
-    "--model", `${PROVIDER}/${MODEL}`, "-ne"];
+    "--model", `${PROVIDER}/${MODEL}`];
   if (launch.continueSession) args.push("-c");
-  if (launch.withExtension) args.push("-e", path.join(repo, "src", "index.ts"));
+  if (launch.extensions !== "installed") args.push("-ne");
+  if (launch.extensions === "source") args.push("-e", path.join(repo, "src", "index.ts"));
   return args;
 }
 

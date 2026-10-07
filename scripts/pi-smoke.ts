@@ -3,6 +3,9 @@
  * against a fake OpenAI-compatible model on loopback. No network, no key, and nothing of the person
  * running it is read or written.
  *
+ * Checks 1-4 run on the package as published: `npm pack`, unpacked and `pi install`ed, so pi finds the extension
+ * through the package manifest and the `files` allowlist. Checks 5-6 load `src/index.ts` directly.
+ *
  * Checks, end to end on a real pi:
  *  1. the first prompt's request carries the date message once, after the system prompt, never in it;
  *  2. a second prompt the same day adds nothing;
@@ -18,6 +21,7 @@ import * as path from "node:path";
 import { DATE_MESSAGE_TYPE, renderDateMessage } from "../src/date-message.ts";
 import { DATE_TAIL_TZ_ENV } from "../src/time-zone.ts";
 import { PROVIDER, MODEL, startFakeModel, type FakeModel } from "./fake-model.ts";
+import { installPackedCopy } from "./packed.ts";
 import { startPi, vendoredPi } from "./rpc-pi.ts";
 
 const ZONE = "Asia/Tokyo";
@@ -73,10 +77,12 @@ function expectOnce(request: object | undefined, expected: string[], label: stri
 /** The date message for a check that ran from `before` until now: a check that straddles midnight sees the later day. */
 const datesSince = (before: Date) => [...new Set([renderDateMessage(before, ZONE), renderDateMessage(new Date(), ZONE)])];
 
-/** Checks 1-4 on one pi, whose compaction keeps almost nothing; returns the first failure, or null. */
+/** Checks 1-4 on one pi running the installed package, whose compaction keeps almost nothing; the first failure, or null. */
 async function checkDating(root: string, fake: FakeModel): Promise<string | null> {
   // keepRecentTokens 1: even this short session compacts, and the first date message is summarized.
-  const pi = startPi({ root, env: childEnv(root, writeAgentDir(root, fake.port, 1), ZONE), withExtension: true });
+  const env = childEnv(root, writeAgentDir(root, fake.port, 1), ZONE);
+  installPackedCopy(root, env);
+  const pi = startPi({ root, env, extensions: "installed" });
   try {
     const before = new Date();
     await pi.prompt("first", "What is today's date?");
@@ -108,12 +114,12 @@ async function checkDating(root: string, fake: FakeModel): Promise<string | null
  */
 async function checkKeptDate(root: string, fake: FakeModel): Promise<string | null> {
   const env = childEnv(root, writeAgentDir(root, fake.port, 2000), ZONE);
-  const history = startPi({ root, env, withExtension: false });
+  const history = startPi({ root, env, extensions: "none" });
   // Two long turns: compaction cuts at the second (past keepRecentTokens), so the first is summarized and the second kept.
   await history.prompt("history-1", `Earlier work. ${"lorem ipsum dolor sit amet ".repeat(800)}`);
   await history.prompt("history-2", `More work. ${"consectetur adipiscing elit ".repeat(800)}`);
   await history.stop();
-  const pi = startPi({ root, env, withExtension: true, continueSession: true });
+  const pi = startPi({ root, env, extensions: "source", continueSession: true });
   try {
     const before = new Date();
     await pi.prompt("dated", "What is today's date?");
@@ -130,7 +136,7 @@ async function checkKeptDate(root: string, fake: FakeModel): Promise<string | nu
 
 /** Check 6: an invalid zone stops pi at launch, naming the variable. */
 async function checkInvalidZone(root: string): Promise<string | null> {
-  const pi = startPi({ root, env: childEnv(root, path.join(root, "agent"), "Mars/Olympus"), withExtension: true });
+  const pi = startPi({ root, env: childEnv(root, path.join(root, "agent"), "Mars/Olympus"), extensions: "source" });
   const code = await Promise.race([pi.exited, new Promise<"running">((resolve) => setTimeout(() => resolve("running"), LAUNCH_TIMEOUT_MS))]);
   await pi.stop();
   if (code === "running") return `invalid zone: pi was still running after ${LAUNCH_TIMEOUT_MS / 1000} s`;
