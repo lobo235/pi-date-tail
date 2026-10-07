@@ -1,0 +1,36 @@
+name: Bug report
+description: pi-date-tail gave the wrong day, a duplicate message, or broke a launch.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never paste a transcript or a session file here.** It contains your conversations, and this issue is
+        public. Security problems go to the Security tab instead (see SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions
+      description: |
+        `pi --version`, the pi-date-tail version (`pi list`), `node --version`, and your OS.
+    validations:
+      required: true
+  - type: textarea
+    id: zone
+    attributes:
+      label: Time zone settings
+      description: |
+        Whether `PI_DATE_TAIL_TZ` and `TZ` are set (and, if you are happy to share them, their values), and the
+        `Current date:` line the model received. Optional.
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Steps, ideally on a new session with nothing private in it. Optional.
