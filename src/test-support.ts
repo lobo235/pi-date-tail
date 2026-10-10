@@ -35,11 +35,12 @@ export function agentStart(sections: Record<string, string> = {}) {
 }
 
 /**
- * Evaluates `expression` in a fresh node process with `TZ` set to `tz`, after importing the module at
+ * Evaluates `expression` in a fresh node process with `TZ` set to `tz` (unset when `tz` is undefined), after importing the module at
  * `modulePath` (relative to src/) as `mod`. Returns what the expression printed.
  */
-export function evaluateUnderTz(tz: string, modulePath: string, expression: string): string {
+export function evaluateUnderTz(tz: string | undefined, modulePath: string, expression: string): string {
   const moduleUrl = new URL(modulePath, import.meta.url).href;
   const script = `const mod = await import(${JSON.stringify(moduleUrl)}); console.log(String(${expression}));`;
-  return execFileSync(process.execPath, ["--input-type=module", "-e", script], { env: { ...process.env, TZ: tz }, encoding: "utf8" }).trim();
+  const { TZ: _inherited, ...env } = process.env;
+  return execFileSync(process.execPath, ["--input-type=module", "-e", script], { env: tz === undefined ? env : { ...env, TZ: tz }, encoding: "utf8" }).trim();
 }

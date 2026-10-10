@@ -105,9 +105,9 @@ pi-date-tail uses one public extension event (`before_agent_start` returning a c
 session branch. It does not check pi's version at runtime.
 
 - Tested on pi 1.0.4, the version this repository vendors for its tests.
-- CI runs, on every push on Linux and macOS: the tests, pi's own extension loader on the entry, and a real pi
-  with a fake model, both on the package as `npm pack` builds it (installed with `pi install`) and on the
-  source. On Windows, CI runs it but it is not required to pass.
+- CI runs, on every push on Linux, macOS and Windows: the tests, pi's own extension loader on the entry, and a
+  real pi with a fake model, both on the package as `npm pack` builds it (installed with `pi install`) and on
+  the source.
 - A nightly job runs the same against the newest pi on npm and opens an issue when it fails. A pi version known
   to break pi-date-tail is listed under *Known issues* until it is fixed.
 
