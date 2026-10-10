@@ -1,13 +1,33 @@
 # pi-date-tail
 
-**Your calendar day for [pi](https://github.com/earendil-works/pi), without touching the system prompt.**
+![pi-date-tail: without a date the model guesses one, and where the date goes decides what the prompt cache re-reads, shown over one week for a date in the system prompt, a date section from an extension, a date fixed at launch, and pi-date-tail's one hidden line at the end](https://raw.githubusercontent.com/lobo235/pi-date-tail/main/.github/assets/infographic.png)
+
+**Your model knows what day it is. Your prompt cache never notices.** pi-date-tail gives [pi](https://github.com/earendil-works/pi)'s model the
+calendar day as one short hidden message at the end of the conversation, once a day, so nothing a prompt cache
+already holds ever changes.
+
+```bash
+pi install npm:pi-date-tail
+```
+
+## Why pi-date-tail
 
 pi does not tell the model what day it is. It took the date out of its system prompt
 ([pi#6621](https://github.com/earendil-works/pi/issues/6621)) so the prompt stays the same from one day to the
 next and a provider's prompt cache keeps working. That is the right call for the cache, but a model with no date
 guesses one: it dates a changelog entry from its training cutoff, misreads "yesterday" in a log, or works out a
-deadline from the wrong day. pi-date-tail gives the model the day back as one short, hidden message appended to
-the conversation, once a day, so nothing a cache already holds ever changes.
+deadline from the wrong day.
+
+Giving the date back is harder than it looks, because where it goes decides what the cache has to read again:
+
+- **In the system prompt**, the first request after midnight re-reads the whole conversation, every day.
+- **In a section an extension adds**, it drops out of every run your prompt did not start and comes back with
+  your next one; on a server that renders all system text first, each change re-reads the conversation.
+- **Fixed at launch**, it never changes, so it is wrong from midnight until you restart.
+- **pi-date-tail** appends the day at the end of the conversation, where it changes nothing ahead of it: 40 to
+  50 tokens once a day, with no extra requests, no network calls and no settings.
+
+The details are under [Why a message, not the system prompt](#why-a-message-not-the-system-prompt).
 
 ## What the model sees
 

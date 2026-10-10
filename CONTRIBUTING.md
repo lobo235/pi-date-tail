@@ -62,7 +62,7 @@ one by hand, set the exact version of `@earendil-works/pi-coding-agent` in `devD
 
 **Where a release shows up.** The [pi package gallery](https://pi.dev/packages) lists the package from npm within
 minutes of a publish: its card shows the `package.json` `description` and the `pi.image` card
-(`.github/assets/card.png`, pinned to the release tag), and its page renders the README inside the published
+(`.github/assets/infographic.png`, pinned to the release tag), and its page renders the README inside the published
 tarball. Editing either on GitHub changes nothing there until the next release, and a README link to a file the
 package does not ship must be an absolute GitHub URL. After `publish`, `release.yml` creates the GitHub Release
 for the tag from its `CHANGELOG.md` section; for the manual first publish, run
