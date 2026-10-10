@@ -21,4 +21,4 @@ once-per-day behaviour. The message's exact wording is not part of it.
 - CI on Linux, macOS and Windows: the tests; the entry loaded through pi's own extension loader (jiti); a real pi with
   a fake model, run both on the package as `npm pack` builds it, installed with `pi install` so pi finds it
   through the `pi.extensions` manifest and the `files` allowlist, and on the source; a secret scan, a workflow security audit (zizmor), Dependabot updates and a
-  package-contents check. A nightly run against the newest pi; npm publishing by trusted publishing.
+  package-contents check. A nightly run against the newest pi; npm publishing by trusted publishing, then a GitHub Release carrying the tag's changelog notes.

@@ -25,6 +25,8 @@ pi session. `pi remove /path/to/pi-date-tail` undoes it.
 
 ## Making the change
 
+- **The pull request title** becomes the squash commit's subject: `area: summary`, in the imperative or as a
+  statement of the new behaviour (`render: keep the Goal line once the Request moves`).
 - **Tests first**, one behaviour at a time, through the public function or the registered handler. Fakes over
   mocks: `src/test-support.ts` has a fake pi.
 - **Test data is synthetic.** No real transcript, hostname, IP address, user name or key.
@@ -47,7 +49,7 @@ one by hand, set the exact version of `@earendil-works/pi-coding-agent` in `devD
 
 1. Bump `version` in `package.json` (it starts at `0.0.0`), and rename `## [Unreleased]` in `CHANGELOG.md` to
    `## [vX.Y.Z] - YYYY-MM-DD`, with the `v` (`release.yml` looks for exactly that heading). Add a fresh empty
-   `## [Unreleased]` above it.
+   `## [Unreleased]` above it. Point `pi.image` in `package.json` at the new tag too: the release job checks it.
 2. **The first publish of the package is manual.** npm cannot configure a trusted publisher for a package that
    does not exist yet, so the first version is published by hand: `npm publish --access public`, with 2FA. Right
    after it, on npmjs.com: configure the trusted publisher (this repository, workflow `release.yml`, environment
@@ -58,7 +60,18 @@ one by hand, set the exact version of `@earendil-works/pi-coding-agent` in `devD
 4. A trusted-publisher configuration must complete its first publish within 2 days, or it expires and has to be
    set up again.
 
-### Repository settings the docs and workflows depend on
+**Where a release shows up.** The [pi package gallery](https://pi.dev/packages) lists the package from npm within
+minutes of a publish: its card shows the `package.json` `description` and the `pi.image` card
+(`.github/assets/card.png`, pinned to the release tag), and its page renders the README inside the published
+tarball. Editing either on GitHub changes nothing there until the next release, and a README link to a file the
+package does not ship must be an absolute GitHub URL. After `publish`, `release.yml` creates the GitHub Release
+for the tag from its `CHANGELOG.md` section; for the manual first publish, run
+`gh release create vX.Y.Z --verify-tag --title vX.Y.Z --notes-file <that section>` instead. The repository's
+social preview (Settings > General) is `.github/assets/social-preview.png`, uploaded by hand.
+
+## Repository settings (maintainers)
+
+The workflows and docs depend on these GitHub settings:
 
 - **Environment `npm`** with required reviewers (otherwise a tag publishes without a maintainer's approval) and a
   deployment tag rule for `v*`.
@@ -72,6 +85,8 @@ one by hand, set the exact version of `@earendil-works/pi-coding-agent` in `devD
 - **Private vulnerability reporting** enabled: SECURITY.md sends reports to the Security tab.
 - The nightly workflow opens issues, never pull requests, so "Allow GitHub Actions to create and approve pull
   requests" is not needed.
+- GitHub pauses scheduled workflows in a repository with no activity for 60 days; re-enable `nightly-pi` from
+  the Actions tab when that happens.
 
 ## Licence
 

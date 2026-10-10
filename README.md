@@ -148,7 +148,7 @@ once. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## More
 
-[CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+[CONTRIBUTING.md](https://github.com/lobo235/pi-date-tail/blob/main/CONTRIBUTING.md), [SECURITY.md](https://github.com/lobo235/pi-date-tail/blob/main/SECURITY.md), [CODE_OF_CONDUCT.md](https://github.com/lobo235/pi-date-tail/blob/main/CODE_OF_CONDUCT.md).
 
 ## License
 
