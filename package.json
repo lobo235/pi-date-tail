@@ -1,7 +1,7 @@
 {
   "name": "pi-date-tail",
   "version": "0.0.0",
-  "description": "Your calendar day for pi, without touching the system prompt: a short hidden message appended to the conversation, once per day and again after a compaction that summarized it away.",
+  "description": "Tell the model what day it is without breaking pi's prompt cache: one short hidden message appended once per day, never the system prompt, and again after a compaction summarized it away.",
   "type": "module",
   "license": "MIT",
   "author": "Justin Barlow",
@@ -16,14 +16,21 @@
   "keywords": [
     "pi-package",
     "pi",
+    "pi-extension",
+    "pi-coding-agent",
+    "coding-agent",
+    "llm",
+    "ai-agents",
     "date",
+    "timezone",
     "prompt-cache",
-    "coding-agent"
+    "prompt-caching"
   ],
   "pi": {
     "extensions": [
       "./src/index.ts"
-    ]
+    ],
+    "image": "https://raw.githubusercontent.com/lobo235/pi-date-tail/v1.0.0/.github/assets/card.png"
   },
   "files": [
     "src/**/*.ts",
