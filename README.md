@@ -1,6 +1,6 @@
 # pi-date-tail
 
-![pi-date-tail: without a date the model guesses one, and where the date goes decides what the prompt cache re-reads, shown over one week for a date in the system prompt, a date section from an extension, a date fixed at launch, and pi-date-tail's one hidden line at the end](https://raw.githubusercontent.com/lobo235/pi-date-tail/main/.github/assets/infographic.png)
+![pi-date-tail: without a date the model guesses one, so a changelog gets dated 2024 and a deadline lands on the wrong day; of four ways to give a model the date, only pi-date-tail's one hidden line at the end of the conversation is right every day and leaves the prompt cache untouched](https://raw.githubusercontent.com/lobo235/pi-date-tail/main/.github/assets/infographic.png)
 
 **Your model knows what day it is. Your prompt cache never notices.** pi-date-tail gives [pi](https://github.com/earendil-works/pi)'s model the
 calendar day as one short hidden message at the end of the conversation, once a day, so nothing a prompt cache
