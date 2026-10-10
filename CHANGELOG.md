@@ -20,5 +20,5 @@ once-per-day behaviour. The message's exact wording is not part of it.
   the next prompt adds no second copy. A kept message from an earlier day still gets today's added.
 - CI on Linux, macOS and Windows: the tests; the entry loaded through pi's own extension loader (jiti); a real pi with
   a fake model, run both on the package as `npm pack` builds it, installed with `pi install` so pi finds it
-  through the `pi.extensions` manifest and the `files` allowlist, and on the source; a secret scan and a
+  through the `pi.extensions` manifest and the `files` allowlist, and on the source; a secret scan, a workflow security audit (zizmor), Dependabot updates and a
   package-contents check. A nightly run against the newest pi; npm publishing by trusted publishing.

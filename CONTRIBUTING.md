@@ -34,8 +34,8 @@ pi session. `pi remove /path/to/pi-date-tail` undoes it.
 - The persisted message type `date-tail` and the `PI_DATE_TAIL_TZ` variable never change outside a major
   version; see the README's *Versioning*.
 
-`npm test` must pass. CI runs it on Linux and macOS, plus a secret scan and a check of what the package would
-publish (`npm run check-pack`).
+`npm test` must pass. CI runs it on Linux, macOS and Windows, plus a secret scan, a security audit of the workflows (zizmor) and a check
+of what the package would publish (`npm run check-pack`).
 
 ## A new pi version
 
@@ -62,6 +62,11 @@ one by hand, set the exact version of `@earendil-works/pi-coding-agent` in `devD
 
 - **Environment `npm`** with required reviewers (otherwise a tag publishes without a maintainer's approval) and a
   deployment tag rule for `v*`.
+- **Rulesets**: `main` requires a pull request with its review threads resolved and a linear history (squash or
+  rebase merges), and every CI check: the `test` legs, `workflows` and `secrets`. Maintainers can bypass it. `v*` tags are
+  protected.
+- **Security**: Dependabot alerts and security updates, plus the weekly version updates in `.github/dependabot.yml`; CodeQL
+  default setup; secret scanning with push protection.
 - **Discussions** enabled: the issue template's "Questions and setup help" link points there.
 - **Private vulnerability reporting** enabled: SECURITY.md sends reports to the Security tab.
 - The nightly workflow opens issues, never pull requests, so "Allow GitHub Actions to create and approve pull
