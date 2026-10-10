@@ -8,6 +8,8 @@ once-per-day behaviour. The message's exact wording is not part of it.
 
 ## [Unreleased]
 
+## [v1.0.0] - 2026-10-10
+
 ### Added
 
 - The calendar day as a hidden `date-tail` custom message appended after your prompt, once per calendar

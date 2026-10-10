@@ -1,6 +1,6 @@
 {
   "name": "pi-date-tail",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Tell the model what day it is without breaking pi's prompt cache: one short hidden message appended once per day, never the system prompt, and again after a compaction summarized it away.",
   "type": "module",
   "license": "MIT",
