@@ -2,15 +2,16 @@
  * Checks what `npm pack` would publish: the files pi needs to load and run the extension, and nothing else
  * (no tests, test support, scripts, workflows or agent notes). Exits 1 naming each problem.
  */
-import { execFileSync } from "node:child_process";
 import * as path from "node:path";
+
+import { runNpm } from "./packed.ts";
 
 const repo = path.join(import.meta.dirname, "..");
 const REQUIRED = ["package.json", "README.md", "LICENSE", "CHANGELOG.md", "src/index.ts", "src/date-message.ts", "src/time-zone.ts"];
 const ALLOWED = [/^package\.json$/, /^README\.md$/, /^LICENSE$/, /^CHANGELOG\.md$/, /^src\/[\w-]+\.ts$/];
 const FORBIDDEN = [/\.test\.ts$/, /^src\/test-support\.ts$/];
 
-const packed = JSON.parse(execFileSync("npm", ["pack", "--dry-run", "--json"], { cwd: repo, encoding: "utf8", shell: process.platform === "win32" })) as
+const packed = JSON.parse(runNpm(["pack", "--dry-run", "--json"], repo)) as
   { files: { path: string }[]; unpackedSize: number }[];
 const files = packed[0].files.map((file) => file.path);
 
