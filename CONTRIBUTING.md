@@ -62,11 +62,12 @@ one by hand, set the exact version of `@earendil-works/pi-coding-agent` in `devD
 
 - **Environment `npm`** with required reviewers (otherwise a tag publishes without a maintainer's approval) and a
   deployment tag rule for `v*`.
-- **Rulesets**: `main` requires a pull request with its review threads resolved and a linear history (squash or
+- **Rulesets**: `main` requires a pull request approved by a code owner (`.github/CODEOWNERS`), with its review threads
+  resolved and a linear history (squash or
   rebase merges), and every CI check: the `test` legs, `workflows` and `secrets`. Maintainers can bypass it. `v*` tags are
   protected.
 - **Security**: Dependabot alerts and security updates, plus the weekly version updates in `.github/dependabot.yml`; CodeQL
-  default setup; secret scanning with push protection.
+  default setup, whose high and critical alerts block a merge; secret scanning with push protection.
 - **Discussions** enabled: the issue template's "Questions and setup help" link points there.
 - **Private vulnerability reporting** enabled: SECURITY.md sends reports to the Security tab.
 - The nightly workflow opens issues, never pull requests, so "Allow GitHub Actions to create and approve pull
