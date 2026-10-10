@@ -51,7 +51,8 @@ test("the process's own zone honours TZ, and is undefined when TZ names no zone"
     { name: "UTC", tz: "UTC", want: "UTC" },
     // The C library falls back to UTC here; the formatter reports no name (or "Etc/Unknown").
     { name: "not a zone", tz: "not-a-zone", want: "undefined" },
-    { name: "empty", tz: "", want: "undefined" },
+    // Windows reads an empty TZ as unset (the system's zone); the C library elsewhere reads it as UTC with no name.
+    { name: "empty", tz: "", want: process.platform === "win32" ? evaluateUnderTz(undefined, "./time-zone.ts", "mod.processTimeZone()") : "undefined" },
   ];
   for (const testCase of cases) {
     assert.equal(evaluateUnderTz(testCase.tz, "./time-zone.ts", "mod.processTimeZone()"), testCase.want, testCase.name);

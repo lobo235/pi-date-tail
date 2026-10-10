@@ -18,7 +18,7 @@ once-per-day behaviour. The message's exact wording is not part of it.
 - A `date` section that an extension running earlier put in the system prompt wins: no message is added.
 - A date message that the latest compaction kept (at or after its first kept entry) counts as present, so
   the next prompt adds no second copy. A kept message from an earlier day still gets today's added.
-- CI on Linux and macOS: the tests; the entry loaded through pi's own extension loader (jiti); a real pi with
+- CI on Linux, macOS and Windows: the tests; the entry loaded through pi's own extension loader (jiti); a real pi with
   a fake model, run both on the package as `npm pack` builds it, installed with `pi install` so pi finds it
   through the `pi.extensions` manifest and the `files` allowlist, and on the source; a secret scan and a
   package-contents check. A nightly run against the newest pi; npm publishing by trusted publishing.
