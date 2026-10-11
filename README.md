@@ -81,7 +81,7 @@ conversation, is read again at full price and full latency.
 
 - **A date in the system prompt** changes it once a day: the first request after midnight re-reads the whole
   conversation. That is why pi removed it.
-- **A `date` section added by an extension** changes it much more often. As of pi 1.0.4, pi asks extensions for
+- **A `date` section added by an extension** changes it much more often. As of pi 1.1.0, pi asks extensions for
   their sections only on prompts you send. A run that starts any other way (a message from another extension,
   a background task reporting back) is built from pi's base sections, so the date drops out, and your next
   prompt puts it back. Each flip is a change at the start of the request, and a server whose chat template
@@ -124,7 +124,8 @@ suggests plain `date`.
 pi-date-tail uses one public extension event (`before_agent_start` returning a custom message) and reads the
 session branch. It does not check pi's version at runtime.
 
-- Tested on pi 1.0.4, the version this repository vendors for its tests.
+- Tested with pi 0.87.1, 0.99.0, 0.99.1, 0.99.2, 1.0.0, 1.0.1, 1.0.2, 1.0.3, 1.0.4 and 1.1.0: the full suite and
+  the real-pi smoke on each. The repository vendors 1.1.0 for its tests.
 - CI runs, on every push on Linux, macOS and Windows: the tests, pi's own extension loader on the entry, and a
   real pi with a fake model, both on the package as `npm pack` builds it (installed with `pi install`) and on
   the source.
