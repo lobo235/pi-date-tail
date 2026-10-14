@@ -1,6 +1,6 @@
 {
   "name": "pi-date-tail",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Tell the model what day it is without breaking pi's prompt cache: one short hidden message appended once per day, never the system prompt, and again after a compaction summarized it away.",
   "type": "module",
   "license": "MIT",
@@ -30,7 +30,7 @@
     "extensions": [
       "./src/index.ts"
     ],
-    "image": "https://raw.githubusercontent.com/lobo235/pi-date-tail/v1.0.1/.github/assets/infographic.png"
+    "image": "https://raw.githubusercontent.com/lobo235/pi-date-tail/v1.0.2/.github/assets/infographic.png"
   },
   "files": [
     "src/**/*.ts",
@@ -52,7 +52,7 @@
     "@earendil-works/pi-coding-agent": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "1.1.0",
+    "@earendil-works/pi-coding-agent": "1.2.0",
     "@types/node": "24.19.1",
     "typescript": "5.9.3"
   }

@@ -4,7 +4,7 @@ import type { SessionEntry } from "@earendil-works/pi-coding-agent";
 import dateTailExtension, { DATE_SECTION, registerDateTail } from "./index.ts";
 import { DATE_MESSAGE_TYPE, renderDateMessage } from "./date-message.ts";
 import { DATE_TAIL_TZ_ENV } from "./time-zone.ts";
-import { agentStart, fakePi } from "./test-support.ts";
+import { agentStart, customAgentStart, fakePi } from "./test-support.ts";
 
 // 22:30 on 21 September in Los Angeles; 22 September in UTC and Tokyo.
 const LATE_EVENING_IN_LOS_ANGELES = new Date("2026-09-22T05:30:00Z");
@@ -22,6 +22,12 @@ test("a prompt gets the day as a hidden date-tail message, and the system prompt
     { customType: DATE_MESSAGE_TYPE, content: renderDateMessage(LATE_EVENING_IN_LOS_ANGELES, "America/Los_Angeles"), display: false },
   ]);
   assert.deepEqual(event.systemPromptOptions.sections, {});
+});
+
+test("a run a custom message starts gets the day too, after that message (pi 1.2.0 and newer)", async () => {
+  const { pi, emit } = fakePi();
+  registerDateTail(pi, LOS_ANGELES);
+  assert.equal(contentOf(await emit("before_agent_start", customAgentStart())), renderDateMessage(LATE_EVENING_IN_LOS_ANGELES, "America/Los_Angeles"));
 });
 
 test("the zone is PI_DATE_TAIL_TZ when set, and the process's own zone when not (table)", async () => {
