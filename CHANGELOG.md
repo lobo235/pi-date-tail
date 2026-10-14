@@ -8,6 +8,12 @@ once-per-day behaviour. The message's exact wording is not part of it.
 
 ## [Unreleased]
 
+### Changed
+
+- Tested with pi 1.2.0, which the repository now vendors for its tests. No code changes: from pi 1.2.0 a run an
+  extension's custom message starts gets the date message too, after that message, where earlier pi versions
+  added it only to runs you started.
+
 ## [v1.0.1] - 2026-10-10
 
 ### Changed

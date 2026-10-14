@@ -29,9 +29,15 @@ export function fakePi() {
   return { pi: api as unknown as ExtensionAPI, emit, events: () => [...handlers.keys()] };
 }
 
-/** A before_agent_start event as pi builds it: the prompt, its rendered system prompt and its mutable sections. */
+/** A before_agent_start event as pi builds it for a user prompt: the prompt, its rendered system prompt and its mutable sections. */
 export function agentStart(sections: Record<string, string> = {}) {
-  return { type: "before_agent_start", prompt: "hi", systemPrompt: "", systemPromptOptions: { sections } };
+  return { type: "before_agent_start", messageType: "user", prompt: "hi", systemPrompt: "", systemPromptOptions: { sections } };
+}
+
+/** The same event for a run an extension's custom message starts (pi 1.2.0 and newer fire it there too, pi#5581). */
+export function customAgentStart(sections: Record<string, string> = {}) {
+  const message = { role: "custom", customType: "notice", content: "task finished", display: true, timestamp: 1 };
+  return { type: "before_agent_start", messageType: "custom", message, systemPrompt: "", systemPromptOptions: { sections } };
 }
 
 /**

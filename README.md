@@ -81,11 +81,12 @@ conversation, is read again at full price and full latency.
 
 - **A date in the system prompt** changes it once a day: the first request after midnight re-reads the whole
   conversation. That is why pi removed it.
-- **A `date` section added by an extension** changes it much more often. As of pi 1.1.0, pi asks extensions for
+- **A `date` section added by an extension** changes it much more often. Up to pi 1.1.0, pi asks extensions for
   their sections only on prompts you send. A run that starts any other way (a message from another extension,
   a background task reporting back) is built from pi's base sections, so the date drops out, and your next
   prompt puts it back. Each flip is a change at the start of the request, and a server whose chat template
-  renders all system text first re-reads the conversation every time.
+  renders all system text first re-reads the conversation every time. pi 1.2.0 fixes this
+  ([pi#5581](https://github.com/earendil-works/pi/issues/5581)), but a section still changes once a day.
 - **A date fixed at launch** (`--append-system-prompt`) never flips, but it is wrong from midnight until the
   session restarts.
 - **A message appended to the conversation** changes nothing ahead of it. A new day costs one short message at
@@ -124,8 +125,8 @@ suggests plain `date`.
 pi-date-tail uses one public extension event (`before_agent_start` returning a custom message) and reads the
 session branch. It does not check pi's version at runtime.
 
-- Tested with pi 0.87.1, 0.99.0, 0.99.1, 0.99.2, 1.0.0, 1.0.1, 1.0.2, 1.0.3, 1.0.4 and 1.1.0: the full suite and
-  the real-pi smoke on each. The repository vendors 1.1.0 for its tests.
+- Tested with pi 0.87.1, 0.99.0, 0.99.1, 0.99.2, 1.0.0, 1.0.1, 1.0.2, 1.0.3, 1.0.4, 1.1.0 and 1.2.0: the full
+  suite and the real-pi smoke on each. The repository vendors 1.2.0 for its tests.
 - CI runs, on every push on Linux, macOS and Windows: the tests, pi's own extension loader on the entry, and a
   real pi with a fake model, both on the package as `npm pack` builds it (installed with `pi install`) and on
   the source.
