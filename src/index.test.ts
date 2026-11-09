@@ -136,3 +136,33 @@ test("the default export is the factory pi calls: it registers on the real clock
   assert.deepEqual(events(), ["before_agent_start"]);
   assert.match(String(contentOf(await emit("before_agent_start", agentStart()))), /^Current date: \d{4}-\d\d-\d\d \(\w+day\), your calendar day in /);
 });
+
+test("an unverified pi is announced once, not once per prompt, and the date still works", async () => {
+  const said: string[] = [];
+  const { pi, emit } = fakePi();
+  registerDateTail(pi, { ...LOS_ANGELES, version: "1.6.0", notify: (message) => said.push(message) });
+  assert.equal(contentOf(await emit("before_agent_start", agentStart())), renderDateMessage(LATE_EVENING_IN_LOS_ANGELES, "America/Los_Angeles"));
+  await emit("before_agent_start", agentStart());
+  assert.equal(said.length, 1, said.join("\n"));
+  assert.match(said[0], /pi 1\.6\.0 has not been verified/);
+});
+
+test("a verified pi says nothing at all", async () => {
+  const said: string[] = [];
+  const { pi, emit } = fakePi();
+  registerDateTail(pi, { ...LOS_ANGELES, version: "1.5.0", notify: (message) => said.push(message) });
+  await emit("before_agent_start", agentStart());
+  assert.deepEqual(said, []);
+});
+
+test("a pi whose getBranch moved still gets the date, with one warning naming the internal", async () => {
+  const said: string[] = [];
+  let handler: ((event: unknown, ctx: unknown) => unknown) | undefined;
+  const pi = { on: (_event: string, h: (event: unknown, ctx: unknown) => unknown) => { handler = h; return () => {}; } };
+  registerDateTail(pi as unknown as Parameters<typeof registerDateTail>[0], { ...LOS_ANGELES, version: "1.5.0", notify: (message) => said.push(message) });
+  // A context whose sessionManager has no getBranch, as a pi that renamed it would provide.
+  const result = (await handler!(agentStart(), { sessionManager: {} })) as { message?: unknown } | undefined;
+  assert.equal((result?.message as { content?: unknown } | undefined)?.content, renderDateMessage(LATE_EVENING_IN_LOS_ANGELES, "America/Los_Angeles"), "the date survives a moved internal");
+  assert.equal(said.length, 1, said.join("\n"));
+  assert.match(said[0], /getBranch/);
+});
