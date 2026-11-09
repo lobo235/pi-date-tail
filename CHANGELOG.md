@@ -8,6 +8,8 @@ once-per-day behaviour. The message's exact wording is not part of it.
 
 ## [Unreleased]
 
+## [v1.1.0] - 2026-11-09
+
 ### Added
 
 - A pi this package was not verified against now warns once per session instead of failing quietly later: the notice
