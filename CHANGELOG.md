@@ -8,6 +8,19 @@ once-per-day behaviour. The message's exact wording is not part of it.
 
 ## [Unreleased]
 
+## [v1.1.1] - 2026-11-09
+
+### Security
+
+- `load-smoke.mjs` replaced only the **first** `*` in an export target, and handed a
+  specifier-derived string to `String.replace` as a replacement *pattern*, so a subpath containing
+  `$&` or `` $` `` would be interpreted as a substitution. It now uses `replaceAll` with a function
+  replacer, which fixes both halves (CodeQL `js/incomplete-sanitization`, high).
+
+### Changed
+
+- TypeScript 7.0.2, `@types/node` 24.19.2, and `actions/setup-node` 7.1.0 via Dependabot.
+
 ## [v1.1.0] - 2026-11-09
 
 ### Added
