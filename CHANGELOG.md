@@ -8,6 +8,19 @@ once-per-day behaviour. The message's exact wording is not part of it.
 
 ## [Unreleased]
 
+### Added
+
+- A pi this package was not verified against now warns once per session instead of failing quietly later: the notice
+  names the pi and the verified release lines. Verified lines are 1.2 through 1.5, and pi 1.5.0 was verified by the
+  full suite, the load smoke and a real compaction run.
+- Every pi internal this package reads is feature-detected (`src/pi-guard.ts`): an internal pi moves or drops warns
+  once, naming it, and the one feature it backs degrades — the date still arrives, the duplicate check simply goes
+  quiet. Before this, such a change produced an exception at the call site or, worse, a silently skipped check.
+
+### Changed
+
+- The vendored `@earendil-works/pi-coding-agent` moves from 1.2.0 to 1.5.0, so `npm test` runs against the pi in use.
+
 ## [v1.0.2] - 2026-10-13
 
 ### Changed
